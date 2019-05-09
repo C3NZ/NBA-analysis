@@ -51,3 +51,4 @@ if __name__ == "__main__":
     df = load_df()
     sliced_df = get_year_from_df(df, 2010, 2017)
     unique_players = get_uniques_only(sliced_df)
+    print(unique_players)
