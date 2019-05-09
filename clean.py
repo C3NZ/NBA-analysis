@@ -39,14 +39,14 @@ def get_uniques_only(df: pd.DataFrame):
     start_year, stop_year = int(df["Year"].min()), int(df["Year"].max())
 
     # iterate through all the years and grab only the unique player totals
-    for current_year in range(start_year, stop_year):
+    for current_year in range(start_year, stop_year + 1):
         current_df = df[df.Year == current_year]
         unique_years.append(current_df.drop_duplicates(subset="Player", keep="first"))
 
     return pd.concat(unique_years, ignore_index=True)
 
 
-def get_nba_df(unique: bool = True, from_year: int = 2010, to_year: int = 2017):
+def get_nba_df(unique: bool = True, from_year: int = 2010, to_year: int = 2018):
     """
         Get a copy of the NBA dataframe
 
@@ -72,6 +72,6 @@ if __name__ == "__main__":
         Tester functions for now
     """
     df = load_df()
-    sliced_df = get_year_from_df(df, 2010, 2017)
+    sliced_df = get_year_from_df(df, 2010, 2019)
     unique_players = get_uniques_only(sliced_df)
     print(unique_players)
