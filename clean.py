@@ -6,7 +6,7 @@ def load_df():
     """
         Load our dataframe
     """
-    return pd.read_csv("datasets/Season_stats.csv")
+    return pd.read_csv("datasets/Seasons_Stats.csv")
 
 
 def get_year_from_df(df: pd.DataFrame, from_year: int, to_year: int = None):
@@ -28,13 +28,26 @@ def get_year_from_df(df: pd.DataFrame, from_year: int, to_year: int = None):
 
 
 def get_uniques_only(df: pd.DataFrame):
-    '''
+    """
         Filter our dataframes for unique players only
-    '''
-    start_year stop_year = df['Year'].min(), df['Year'].max()
-    for j in range(start_year, stop_year):
-        current_year = years_to_get[i][1] + j
-        current_df = current_decade[current_decade.Year == current_year]
-        years.append(current_df.drop_duplicates(subset='Player', keep='first'))
-     
-    output_df.append(years)
+
+        Args:
+            df -> The NBA dataframe with all the players 
+
+        Returns:
+            A dataframe containing only unique players
+    """
+    unique_df = pd.DataFrame()
+    unique_years = []
+    start_year, stop_year = int(df["Year"].min()), int(df["Year"].max())
+    for current_year in range(start_year, stop_year):
+        current_df = df[df.Year == current_year]
+        unique_years.append(current_df.drop_duplicates(subset="Player", keep="first"))
+
+    return pd.concat(unique_years, ignore_index=True)
+
+
+if __name__ == "__main__":
+    df = load_df()
+    sliced_df = get_year_from_df(df, 2010, 2017)
+    unique_players = get_uniques_only(sliced_df)
