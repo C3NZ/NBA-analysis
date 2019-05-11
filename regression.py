@@ -37,8 +37,11 @@ def apply_pca(df: pd.DataFrame, dimensions: int = 2):
     pca = PCA(n_components=dimensions)
     components = pca.fit_transform(df)
 
-    pca_df  = pd.DataFrame(data=components, columns==['pca-' + str(x + 1) for x in range(dimensions)])
+    pca_df = pd.DataFrame(
+        data=components, columns=["pca-" + str(x + 1) for x in range(dimensions)]
+    )
     return pca_df
+
 
 def main() -> None:
     """
@@ -47,6 +50,9 @@ def main() -> None:
     nba_stats, nba_ws = filter_cols(get_nba_df())
     print(nba_stats)
     print(nba_ws)
+    nba_pca = apply_pca(nba_stats)
+
+    print(nba_pca)
 
 
 if __name__ == "__main__":
