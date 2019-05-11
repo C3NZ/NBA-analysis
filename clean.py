@@ -9,9 +9,9 @@ def load_df():
     return pd.read_csv("datasets/Seasons_Stats.csv")
 
 
-def get_year_from_df(df: pd.DataFrame, from_year: int, to_year: int):
+def get_year_from_df(df: pd.DataFrame, from_year: int, to_year: int) -> pd.DataFrame:
     """
-        Get data for specific years 
+        Get data for specific years
 
         Args:
             df -> NBA dataframe with player stats
@@ -24,12 +24,12 @@ def get_year_from_df(df: pd.DataFrame, from_year: int, to_year: int):
     return df[(df["Year"] >= from_year) & (df["Year"] <= to_year)]
 
 
-def get_uniques_only(df: pd.DataFrame):
+def get_uniques_only(df: pd.DataFrame) -> pd.DataFrame:
     """
         Filter our dataframes for unique players only
 
         Args:
-            df -> The NBA dataframe with all the players 
+            df -> The NBA dataframe with all the players
 
         Returns:
             A dataframe containing only unique players
@@ -46,14 +46,16 @@ def get_uniques_only(df: pd.DataFrame):
     return pd.concat(unique_years, ignore_index=True)
 
 
-def get_nba_df(unique: bool = True, from_year: int = 2010, to_year: int = 2018):
+def get_nba_df(
+    unique: bool = True, from_year: int = 2010, to_year: int = 2018
+) -> pd.DataFrame:
     """
         Get a copy of the NBA dataframe
 
         Args:
             unique (default: True) -> Indicator for if we want unique players (most likely always)
             from_year (default: 2010) -> The year we want to start from
-            to_year (default: 2017) -> the year we want up till 
+            to_year (default: 2017) -> the year we want up till
 
         Returns:
             A modified version of the nba dataframe
@@ -72,6 +74,6 @@ if __name__ == "__main__":
         Tester functions for now
     """
     df = load_df()
-    sliced_df = get_year_from_df(df, 2010, 2019)
+    sliced_df = get_year_from_df(df, 2010, 2018)
     unique_players = get_uniques_only(sliced_df)
     print(unique_players)

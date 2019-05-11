@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 
 @app.route("/")
-def get_root():
+def get_root() -> tuple:
     return "Root route", 200
 
 

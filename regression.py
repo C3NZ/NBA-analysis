@@ -16,7 +16,18 @@ def filter_cols(df: pd.DataFrame) -> tuple:
             tuple containing (nba player stats, nba player win shares)
     """
     # Columns we want to remove
-    unwanted_cols = ["Year", "Pos", "Age", "Tm", "blanl", "blank2", "OWS", "DWS", "WS"]
+    unwanted_cols = [
+        "Year",
+        "Player",
+        "Pos",
+        "Age",
+        "Tm",
+        "blanl",
+        "blank2",
+        "OWS",
+        "DWS",
+        "WS",
+    ]
 
     # Target column we'd like
     target_col = ["WS"]
@@ -29,14 +40,22 @@ def filter_cols(df: pd.DataFrame) -> tuple:
 
 
 # Apply PCA to a dataframe
-def apply_pca(df: pd.DataFrame, dimensions: int = 2):
+def apply_pca(df: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
     """
-        Apply pca to our nba dataframe
+        Apply pca to our nba dataframe given the dimensionality we tend to reduce to
+
+        Args:
+            df -> The nba dataframe
+            dimensions -> the dimensions we tend to reduce
+
+        Returns:
+            PCA scaled dataframe
 
     """
     pca = PCA(n_components=dimensions)
     components = pca.fit_transform(df)
 
+    # Construct our new pca dataframe
     pca_df = pd.DataFrame(
         data=components, columns=["pca-" + str(x + 1) for x in range(dimensions)]
     )
@@ -50,7 +69,7 @@ def main() -> None:
     nba_stats, nba_ws = filter_cols(get_nba_df())
     print(nba_stats)
     print(nba_ws)
-    nba_pca = apply_pca(nba_stats)
+    nba_pca = apply_pca(nba_stats.fillna(0), dimensions=3)
 
     print(nba_pca)
 
