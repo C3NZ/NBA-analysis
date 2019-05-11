@@ -34,7 +34,6 @@ def get_uniques_only(df: pd.DataFrame) -> pd.DataFrame:
         Returns:
             A dataframe containing only unique players
     """
-    unique_df = pd.DataFrame()
     unique_years = []
     start_year, stop_year = int(df["Year"].min()), int(df["Year"].max())
 
@@ -69,11 +68,18 @@ def get_nba_df(
     return sliced_df
 
 
-if __name__ == "__main__":
+def main() -> None:
     """
-        Tester functions for now
+        Main functionality for data.py
     """
     df = load_df()
     sliced_df = get_year_from_df(df, 2010, 2018)
     unique_players = get_uniques_only(sliced_df)
     print(unique_players)
+
+
+if __name__ == "__main__":
+    """
+        Tester functions for now
+    """
+    main()
