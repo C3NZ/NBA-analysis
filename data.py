@@ -1,5 +1,12 @@
+from collections import namedtuple
+
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
+
+FEAT_DATA = namedtuple("Features", ["training", "testing"])
+
+TARGET_DATA = namedtuple("Target", ["training", "testing"])
 
 
 def load_df():
@@ -52,7 +59,8 @@ def get_nba_df(
         Get a copy of the NBA dataframe
 
         Args:
-            unique (default: True) -> Indicator for if we want unique players (most likely always)
+            unique (default: True) -> Indicator for if we want unique players
+                                      (most likely always)
             from_year (default: 2010) -> The year we want to start from
             to_year (default: 2017) -> the year we want up till
 
@@ -66,6 +74,37 @@ def get_nba_df(
         return get_uniques_only(sliced_df)
 
     return sliced_df
+
+
+def create_data_tuple(
+    feat_train: np.array,
+    feat_test: np.array,
+    target_train: np.array,
+    target_test: np.array,
+) -> tuple:
+    """
+        Create our models training/testing data object
+    """
+    features = FEAT_DATA(feat_train, feat_test)
+    target = TARGET_DATA(target_train, target_test)
+    return features, target
+
+
+def get_train_test(feature_df: pd.DataFrame, target_df: pd.DataFrame) -> tuple:
+    """
+        Get the train test split up data from our dataframes
+
+        Args:
+            feature_df -> the nba player stats (features) dataframe
+            target_df -> the target that were trying to obtain
+    """
+
+    # Obtain training and testing data with our test size as 30%
+    feat_train, feat_test, target_train, target_test = train_test_split(
+        feature_df, target_df, test_size=0.3, random_state=50
+    )
+
+    return create_data_tuple(feat_train, feat_test, target_train, target_test)
 
 
 def main() -> None:
