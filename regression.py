@@ -76,20 +76,24 @@ def create_linear_regression(features: namedtuple, target: namedtuple):
         Returns:
             Linear regression model
     """
-    pass
+    reg_model = LinearRegression()
+    reg_model.fit(features.training, target.training)
+    print(reg_model.score(features.testing, target.testing))
 
 
 def main() -> None:
     """
         Main functionality of our linear regression
     """
-    nba_stats, nba_ws = filter_cols(get_nba_df())
+    nba_stats, nba_ws = filter_cols(get_nba_df(from_year=2000))
     nba_pca = apply_pca(nba_stats.fillna(0), dimensions=3)
 
     features, target = get_train_test(nba_stats, nba_ws)
+    pca_feats, pca_target = get_train_test(nba_pca, nba_ws)
 
     print(features.training)
     print(target.training)
+    create_linear_regression(pca_feats, pca_target)
 
 
 if __name__ == "__main__":
