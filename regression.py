@@ -1,8 +1,10 @@
+from collections import namedtuple
+
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression
 
-from clean import get_nba_df
+from data import get_nba_df, get_train_test
 
 
 def filter_cols(df: pd.DataFrame) -> tuple:
@@ -42,7 +44,8 @@ def filter_cols(df: pd.DataFrame) -> tuple:
 # Apply PCA to a dataframe
 def apply_pca(df: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
     """
-        Apply pca to our nba dataframe given the dimensionality we tend to reduce to
+        Apply pca to our nba dataframe given the dimensionality 
+        we tend to reduce to
 
         Args:
             df -> The nba dataframe
@@ -62,16 +65,31 @@ def apply_pca(df: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
     return pca_df
 
 
+def create_linear_regression(features: namedtuple, target: namedtuple):
+    """
+        Create the linear regression model
+
+        Args:
+            training_data -> tuple of both training X and Y data
+            testing_data -> tuple of both testing X and Y data
+
+        Returns:
+            Linear regression model
+    """
+    pass
+
+
 def main() -> None:
     """
         Main functionality of our linear regression
     """
     nba_stats, nba_ws = filter_cols(get_nba_df())
-    print(nba_stats)
-    print(nba_ws)
     nba_pca = apply_pca(nba_stats.fillna(0), dimensions=3)
 
-    print(nba_pca)
+    features, target = get_train_test(nba_stats, nba_ws)
+
+    print(features.training)
+    print(target.training)
 
 
 if __name__ == "__main__":
