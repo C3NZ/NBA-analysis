@@ -84,6 +84,16 @@ def create_data_tuple(
 ) -> tuple:
     """
         Create our models training/testing data object
+
+        Args:
+            feat_train -> training features from our dataframe
+            feat_test -> testing features from our dataframe
+            target_train -> training targets from our dataframe
+            target_test -> testing targets from our dataframe
+
+        Returns:
+            A tuple containing our named tuples with our training and testing data
+
     """
     features = FEAT_DATA(feat_train, feat_test)
     target = TARGET_DATA(target_train, target_test)
