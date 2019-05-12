@@ -1,10 +1,11 @@
 from collections import namedtuple
 
 import pandas as pd
+from data import get_nba_df, get_train_test
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression
-
-from data import get_nba_df, get_train_test
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 
 def filter_cols(df: pd.DataFrame) -> tuple:
@@ -19,6 +20,7 @@ def filter_cols(df: pd.DataFrame) -> tuple:
     """
     # Columns we want to remove
     unwanted_cols = [
+        "Unnamed: 0",
         "Year",
         "Player",
         "Pos",
@@ -65,6 +67,24 @@ def apply_pca(df: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
     return pca_df
 
 
+def apply_scaling(features: pd.DataFrame, scale_type: str = "Standard") -> pd.DataFrame:
+    """
+        apply scaling to our dataframe 
+    """
+    scaled_features = features
+    if scale_type == "Standard":
+        std_scaler = StandardScaler()
+        std_features = std_scaler.fit_transform(features)
+        scaled_features = pd.DataFrame(std_features, columns=scaled_features.columns)
+
+    elif scale_type == "MinMax":
+        mm_scaler = MinMaxScaler()
+        mm_features = mm_scaler.fit_transform(features)
+        scaled_features = pd.DataFrame(mm_features, columns=scaled_features.columns)
+
+    return scaled_features
+
+
 def create_linear_regression(features: namedtuple, target: namedtuple):
     """
         Create the linear regression model
@@ -79,21 +99,40 @@ def create_linear_regression(features: namedtuple, target: namedtuple):
     reg_model = LinearRegression()
     reg_model.fit(features.training, target.training)
     print(reg_model.score(features.testing, target.testing))
+    prediction = reg_model.predict(features.testing)
+    print("r^2 and mean square error")
+    print(r2_score(target.testing, prediction))
+    print(mean_squared_error(target.testing, prediction))
+    print("\n")
 
 
 def main() -> None:
     """
         Main functionality of our linear regression
     """
-    nba_stats, nba_ws = filter_cols(get_nba_df(from_year=2000))
-    nba_pca = apply_pca(nba_stats.fillna(0), dimensions=3)
+    # Gather the necessary features
+    nba_stats, nba_ws = filter_cols(get_nba_df(from_year=2010))
+    nba_pca = apply_pca(nba_stats.fillna(0), dimensions=5)
+    std_nba = apply_scaling(nba_stats.fillna(0))
+    mm_nba = apply_scaling(nba_stats.fillna(0), scale_type="MinMax")
+    std_pca = apply_scaling(nba_pca)
+    mm_pca = apply_scaling(nba_pca, scale_type="MinMax")
 
-    features, target = get_train_test(nba_stats, nba_ws)
+    # get train testing data
+    features, target = get_train_test(nba_stats.fillna(0), nba_ws)
     pca_feats, pca_target = get_train_test(nba_pca, nba_ws)
+    std_features, std_target = get_train_test(std_nba, nba_ws)
+    mm_features, mm_target = get_train_test(mm_nba, nba_ws)
+    std_pca, std_pca_target = get_train_test(std_pca, nba_ws)
+    mm_pca, mm_pca_target = get_train_test(mm_pca, nba_ws)
 
-    print(features.training)
-    print(target.training)
+    # Create linear regression models
+    create_linear_regression(features, target)
     create_linear_regression(pca_feats, pca_target)
+    create_linear_regression(std_features, std_target)
+    create_linear_regression(mm_features, mm_target)
+    create_linear_regression(std_pca, std_pca_target)
+    create_linear_regression(mm_pca, mm_pca_target)
 
 
 if __name__ == "__main__":
