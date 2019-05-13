@@ -31,6 +31,17 @@ def filter_cols(df: pd.DataFrame) -> tuple:
         "OWS",
         "DWS",
         "WS",
+        "WS/48",
+        "PER",
+        "BPM",
+        "OBPM",
+        "DBPM",
+        "eFG%",
+        "TOV",
+        "TS%",
+        "3PAr",
+        "VORP",
+        "FTr",
     ]
 
     # Target column we'd like
@@ -39,7 +50,7 @@ def filter_cols(df: pd.DataFrame) -> tuple:
     # Grab the nba stats
     nba_stats = df.drop(columns=unwanted_cols)
     nba_ws = df[target_col]
-
+    print(nba_stats.columns)
     return nba_stats, nba_ws
 
 

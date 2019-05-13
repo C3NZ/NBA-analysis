@@ -1,12 +1,15 @@
+"""
+    Module for dealing with all dataframe interactions
+"""
 from collections import namedtuple
 
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-FEAT_DATA = namedtuple("Features", ["training", "testing"])
+FEATURES = namedtuple("Features", ["training", "testing"])
 
-TARGET_DATA = namedtuple("Target", ["training", "testing"])
+TARGET = namedtuple("Target", ["training", "testing"])
 
 
 def load_df():
@@ -16,7 +19,9 @@ def load_df():
     return pd.read_csv("datasets/Seasons_Stats.csv")
 
 
-def get_year_from_df(df: pd.DataFrame, from_year: int, to_year: int) -> pd.DataFrame:
+def get_year_from_df(
+    dataframe: pd.DataFrame, from_year: int, to_year: int
+) -> pd.DataFrame:
     """
         Get data for specific years
 
@@ -28,7 +33,7 @@ def get_year_from_df(df: pd.DataFrame, from_year: int, to_year: int) -> pd.DataF
         Returns:
             A dataframe containing the data for the years needed
     """
-    return df[(df["Year"] >= from_year) & (df["Year"] <= to_year)]
+    return dataframe[(dataframe["Year"] >= from_year) & (dataframe["Year"] <= to_year)]
 
 
 def get_uniques_only(df: pd.DataFrame) -> pd.DataFrame:
@@ -92,11 +97,12 @@ def create_data_tuple(
             target_test -> testing targets from our dataframe
 
         Returns:
-            A tuple containing our named tuples with our training and testing data
+            A tuple containing our named tuples with our training
+            and testing data
 
     """
-    features = FEAT_DATA(feat_train, feat_test)
-    target = TARGET_DATA(target_train, target_test)
+    features = FEATURES(feat_train, feat_test)
+    target = TARGET(target_train, target_test)
     return features, target
 
 
@@ -107,6 +113,9 @@ def get_train_test(feature_df: pd.DataFrame, target_df: pd.DataFrame) -> tuple:
         Args:
             feature_df -> the nba player stats (features) dataframe
             target_df -> the target that were trying to obtain
+
+        Returns:
+            Returns our training and testing split data as two named tuples
     """
 
     # Obtain training and testing data with our test size as 30%
@@ -121,8 +130,8 @@ def main() -> None:
     """
         Main functionality for data.py
     """
-    df = load_df()
-    sliced_df = get_year_from_df(df, 2010, 2018)
+    dataframe = load_df()
+    sliced_df = get_year_from_df(dataframe, 2010, 2018)
     unique_players = get_uniques_only(sliced_df)
     print(unique_players)
 
