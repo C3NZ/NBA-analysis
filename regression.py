@@ -1,3 +1,4 @@
+import logging
 from collections import namedtuple
 
 import pandas as pd
@@ -6,6 +7,9 @@ from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+LOG_FORMAT = "%(name)s - %(levelname)s - \t%(message)s"
+logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
 
 def filter_cols(df: pd.DataFrame) -> tuple:
@@ -58,7 +62,6 @@ def filter_cols(df: pd.DataFrame) -> tuple:
     # Grab the nba stats
     nba_stats = df.drop(columns=unwanted_cols)
     nba_ws = df[target_col]
-    print(nba_stats.columns)
     return nba_stats, nba_ws
 
 
@@ -125,17 +128,22 @@ def create_linear_regression(
     """
     reg_model = LinearRegression()
     reg_model.fit(features.training, target.training)
-    print(reg_model.score(features.testing, target.testing))
+    model_r2_score = reg_model.score(features.testing, target.testing)
+
+    # Get model scores
     prediction = reg_model.predict(features.testing)
-    print("r^2 and mean square error")
-    print(r2_score(target.testing, prediction))
-    print(mean_squared_error(target.testing, prediction))
-    print("\n")
+    sk_r2_score = r2_score(target.testing, prediction)
+    mean_sqrd_err = mean_squared_error(target.testing, prediction)
+
+    logging.debug(f"Model predicted r2 score: {model_r2_score}")
+    logging.debug(f"sklean r2 score: {sk_r2_score}")
+    logging.debug(f"Mean squared error: {mean_sqrd_err}")
     return reg_model
 
 
+# The available model types we can use for linear regression
 MODELTYPES = {
-    1: "nba",
+    1: "standard",
     2: "stdscaled",
     3: "mmscaled",
     4: "pca",
@@ -147,25 +155,46 @@ MODELTYPES = {
 def obtain_linear_reg(
     model_type: int = 0, dimensions: int = 3, from_year: int = 2010, to_year: int = 2018
 ) -> LinearRegression:
-    nba_stats, nba_ws = filter_cols(get_nba_df(from_year=2000))
+    """
+        Obtain a linear regression model
+
+        Args:
+            model_type -> the type of model data we'd like to build our regression with
+            dimensions -> the number of dimensions to apply to pca
+            from_year -> the year we want our nba data to be selected from
+            to_year -> the year we want our nba data up to
+
+        Returns:
+            Linear regression model using our customized nba dataset
+    """
+    logging.debug("----OBTAINING NEW REGRESSION MODEL----")
+    nba_stats, nba_ws = filter_cols(get_nba_df(from_year=from_year, to_year=to_year))
     nba_stats = nba_stats.fillna(0)
 
-    model = MODELTYPES.get(model_type, "nba")
+    # The model we'd like
+    scaling = MODELTYPES.get(model_type, "No scaling")
 
+    logging.debug(f"Applying {scaling} to our data")
     # obtain correct data
-    if model == "stdscaled":
+    if scaling == "stdscaled":
         nba_stats = apply_scaling(nba_stats)
-    elif model == "mmscaled":
+    elif scaling == "mmscaled":
         nba_stats = apply_scaling(nba_stats)
-    elif model == "pca":
+    elif scaling == "pca":
         nba_stats = apply_pca(nba_stats, dimensions)
-    elif model == "stdpca":
+    elif scaling == "stdpca":
         nba_stats = apply_pca(apply_scaling(nba_stats), dimensions)
-    elif model == "mmpca":
+    elif scaling == "mmpca":
         nba_stats = apply_pca(apply_scaling(nba_stats), dimensions)
 
+    # Obtain features and target data
     features, target = get_train_test(nba_stats, nba_ws)
-    return create_linear_regression(features, target)
+
+    logging.debug("Creating linear regression model")
+    reg_model = create_linear_regression(features, target)
+
+    logging.debug("----FINISHED OBTAINING REGRESSION MODEL----\n")
+    return reg_model
 
 
 def main() -> None:
@@ -197,6 +226,7 @@ def main() -> None:
     # create_linear_regression(std_pca, std_pca_target)
     # create_linear_regression(mm_pca, mm_pca_target)
     obtain_linear_reg()
+    obtain_linear_reg(model_type=4)
 
 
 if __name__ == "__main__":
