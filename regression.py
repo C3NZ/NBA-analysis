@@ -42,6 +42,14 @@ def filter_cols(df: pd.DataFrame) -> tuple:
         "3PAr",
         "VORP",
         "FTr",
+        "ORB%",
+        "DRB%",
+        "TRB%",
+        "AST%",
+        "STL%",
+        "BLK%",
+        "TOV%",
+        "USG%",
     ]
 
     # Target column we'd like
