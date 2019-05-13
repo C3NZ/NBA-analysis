@@ -141,3 +141,5 @@ if __name__ == "__main__":
         Tester functions for now
     """
     main()
+    features = FEATURES("jkfdjsk", 433)
+    print(features)

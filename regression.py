@@ -62,7 +62,6 @@ def filter_cols(df: pd.DataFrame) -> tuple:
     return nba_stats, nba_ws
 
 
-# Apply PCA to a dataframe
 def apply_pca(df: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
     """
         Apply pca to our nba dataframe given the dimensionality 
@@ -88,7 +87,14 @@ def apply_pca(df: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
 
 def apply_scaling(features: pd.DataFrame, scale_type: str = "Standard") -> pd.DataFrame:
     """
-        apply scaling to our dataframe 
+        apply scaling to our dataframe
+
+        Args:
+            features -> the dataframe containing player stats/features
+            scale_type -> the type of scaling that we'd like to apply our data
+
+        Returns:
+            The scaled dataframe
     """
     scaled_features = features
     if scale_type == "Standard":
@@ -104,7 +110,9 @@ def apply_scaling(features: pd.DataFrame, scale_type: str = "Standard") -> pd.Da
     return scaled_features
 
 
-def create_linear_regression(features: namedtuple, target: namedtuple):
+def create_linear_regression(
+    features: namedtuple, target: namedtuple
+) -> LinearRegression:
     """
         Create the linear regression model
 
@@ -123,6 +131,41 @@ def create_linear_regression(features: namedtuple, target: namedtuple):
     print(r2_score(target.testing, prediction))
     print(mean_squared_error(target.testing, prediction))
     print("\n")
+    return reg_model
+
+
+MODELTYPES = {
+    1: "nba",
+    2: "stdscaled",
+    3: "mmscaled",
+    4: "pca",
+    5: "stdpca",
+    6: "mmpca",
+}
+
+
+def obtain_linear_reg(
+    model_type: int = 0, dimensions: int = 3, from_year: int = 2010, to_year: int = 2018
+) -> LinearRegression:
+    nba_stats, nba_ws = filter_cols(get_nba_df(from_year=2000))
+    nba_stats = nba_stats.fillna(0)
+
+    model = MODELTYPES.get(model_type, "nba")
+
+    # obtain correct data
+    if model == "stdscaled":
+        nba_stats = apply_scaling(nba_stats)
+    elif model == "mmscaled":
+        nba_stats = apply_scaling(nba_stats)
+    elif model == "pca":
+        nba_stats = apply_pca(nba_stats, dimensions)
+    elif model == "stdpca":
+        nba_stats = apply_pca(apply_scaling(nba_stats), dimensions)
+    elif model == "mmpca":
+        nba_stats = apply_pca(apply_scaling(nba_stats), dimensions)
+
+    features, target = get_train_test(nba_stats, nba_ws)
+    return create_linear_regression(features, target)
 
 
 def main() -> None:
@@ -130,7 +173,7 @@ def main() -> None:
         Main functionality of our linear regression
     """
     # Gather the necessary features
-    nba_stats, nba_ws = filter_cols(get_nba_df(from_year=2010))
+    nba_stats, nba_ws = filter_cols(get_nba_df(from_year=2000))
     nba_pca = apply_pca(nba_stats.fillna(0), dimensions=5)
     std_nba = apply_scaling(nba_stats.fillna(0))
     mm_nba = apply_scaling(nba_stats.fillna(0), scale_type="MinMax")
@@ -146,12 +189,14 @@ def main() -> None:
     mm_pca, mm_pca_target = get_train_test(mm_pca, nba_ws)
 
     # Create linear regression models
-    create_linear_regression(features, target)
-    create_linear_regression(pca_feats, pca_target)
-    create_linear_regression(std_features, std_target)
-    create_linear_regression(mm_features, mm_target)
-    create_linear_regression(std_pca, std_pca_target)
-    create_linear_regression(mm_pca, mm_pca_target)
+
+    # create_linear_regression(features, target)
+    # create_linear_regression(pca_feats, pca_target)
+    # create_linear_regression(std_features, std_target)
+    # create_linear_regression(mm_features, mm_target)
+    # create_linear_regression(std_pca, std_pca_target)
+    # create_linear_regression(mm_pca, mm_pca_target)
+    obtain_linear_reg()
 
 
 if __name__ == "__main__":
