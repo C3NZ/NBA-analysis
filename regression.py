@@ -1,18 +1,25 @@
+"""
+    Module for handling all linear regressions to be performed on our
+    dataset
+"""
 import logging
 from collections import namedtuple
 
+import matplotlib.pyplot as plt
 import pandas as pd
-from data import get_nba_df, get_train_test
+import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
+from data import get_nba_df, get_train_test
+
 LOG_FORMAT = "%(name)s - %(levelname)s - \t%(message)s"
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
 
-def filter_cols(df: pd.DataFrame) -> tuple:
+def filter_cols(dataframe: pd.DataFrame) -> tuple:
     """
         Filter unwanted columns from our nba dataframe for our linear regression model
 
@@ -60,14 +67,14 @@ def filter_cols(df: pd.DataFrame) -> tuple:
     target_col = ["WS"]
 
     # Grab the nba stats
-    nba_stats = df.drop(columns=unwanted_cols)
-    nba_ws = df[target_col]
+    nba_stats = dataframe.drop(columns=unwanted_cols)
+    nba_ws = dataframe[target_col]
     return nba_stats, nba_ws
 
 
-def apply_pca(df: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
+def apply_pca(dataframe: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
     """
-        Apply pca to our nba dataframe given the dimensionality 
+        Apply pca to our nba dataframe given the dimensionality
         we tend to reduce to
 
         Args:
@@ -79,7 +86,7 @@ def apply_pca(df: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
 
     """
     pca = PCA(n_components=dimensions)
-    components = pca.fit_transform(df)
+    components = pca.fit_transform(dataframe)
 
     # Construct our new pca dataframe
     pca_df = pd.DataFrame(
@@ -136,7 +143,6 @@ def create_linear_regression(
     mean_sqrd_err = mean_squared_error(target.testing, prediction)
 
     logging.debug(f"Model predicted r2 score: {model_r2_score}")
-    logging.debug(f"sklean r2 score: {sk_r2_score}")
     logging.debug(f"Mean squared error: {mean_sqrd_err}")
     return reg_model
 
@@ -190,10 +196,13 @@ def obtain_linear_reg(
     # Obtain features and target data
     features, target = get_train_test(nba_stats, nba_ws)
 
-    logging.debug("Creating linear regression model")
+    logging.debug(
+        f"Creating linear regression model comprised of {len(nba_stats.columns)} features"
+    )
     reg_model = create_linear_regression(features, target)
 
     logging.debug("----FINISHED OBTAINING REGRESSION MODEL----\n")
+
     return reg_model
 
 
