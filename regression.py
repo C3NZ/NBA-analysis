@@ -87,7 +87,7 @@ def apply_pca(dataframe: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
     """
     pca = PCA(n_components=dimensions)
     components = pca.fit_transform(dataframe)
-
+    logging.debug(pca.explained_variance_ratio_.cumsum())
     # Construct our new pca dataframe
     pca_df = pd.DataFrame(
         data=components, columns=["pca-" + str(x + 1) for x in range(dimensions)]
@@ -178,7 +178,7 @@ def obtain_linear_reg(
     nba_stats = nba_stats.fillna(0)
 
     # The model we'd like
-    scaling = MODELTYPES.get(model_type, "No scaling")
+    scaling = MODELTYPES.get(model_type, "no scaling")
 
     logging.debug(f"Applying {scaling} to our data")
     # obtain correct data
