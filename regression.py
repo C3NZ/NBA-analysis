@@ -87,7 +87,8 @@ def apply_pca(dataframe: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
     """
     pca = PCA(n_components=dimensions)
     components = pca.fit_transform(dataframe)
-    logging.debug(pca.explained_variance_ratio_.cumsum())
+    total_info_preserved = pca.explained_variance_ratio_.cumsum()[-1] * 100
+    logging.debug(f"PCA preserved {total_info_preserved:.2f}%")
     # Construct our new pca dataframe
     pca_df = pd.DataFrame(
         data=components, columns=["pca-" + str(x + 1) for x in range(dimensions)]
