@@ -8,11 +8,12 @@ from collections import namedtuple
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-from data import get_nba_df, get_train_test
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+from data import get_nba_df, get_train_test
 
 LOG_FORMAT = "%(name)s - %(levelname)s - \t%(message)s"
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
@@ -71,6 +72,32 @@ def filter_cols(dataframe: pd.DataFrame) -> tuple:
     return nba_stats, nba_ws
 
 
+def find_best_dimensions(dataframe: pd.DataFrame, threshold: float) -> tuple:
+    """
+        Find the amount of dimensions that maintains a specific amount 
+        of information preserved
+
+        Args:
+            dataframe -> The nba dataframe to apply pca on
+            threshold -> the amount of information we'd like to preserve
+
+        Returns:
+            tuple containing the reduced components, dimensions, and
+            information preserved via PCA
+    """
+    dimensions = 0
+    info_preserved = 0
+
+    while info_preserved < threshold:
+        dimensions += 1
+        logging.debug(f"  - Reducing our model to {dimensions} dimensions")
+        pca = PCA(n_components=dimensions)
+        components = pca.fit_transform(dataframe)
+        info_preserved = pca.explained_variance_ratio_.cumsum()[-1]
+
+    return components, dimensions, info_preserved
+
+
 def apply_pca(
     dataframe: pd.DataFrame, dimensions: int = 0, threshold: float = 0.95
 ) -> pd.DataFrame:
@@ -101,13 +128,9 @@ def apply_pca(
         logging.debug(
             f"  - No dimensions provided, finding a dimension that preserves {threshold * 100}% of the original information"
         )
-        info_preserved = 0
-        while info_preserved < threshold:
-            dimensions += 1
-            logging.debug(f"  - Reducing our model to {dimensions} dimensions")
-            pca = PCA(n_components=dimensions)
-            components = pca.fit_transform(dataframe)
-            info_preserved = pca.explained_variance_ratio_.cumsum()[-1]
+        components, dimensions, info_preserved = find_best_dimensions(
+            dataframe, threshold
+        )
 
     logging.debug(
         f"  - PCA preserved {info_preserved * 100:.2f}% information with {dimensions} reduced dimensions"
@@ -196,7 +219,7 @@ def obtain_linear_reg(
         Args:
             model_type -> the type of model data we'd like to build our regression with
             pca_dimensions -> the number of dimensions to apply to pca (if 0, auto-detect the dimensions)
-            pca_threshold -> The threshold for information preserved by our pca models 
+            pca_threshold -> The threshold for information preserved by our pca models
             from_year -> the year we want our nba data to be selected from
             to_year -> the year we want our nba data up to
 
@@ -233,7 +256,8 @@ def obtain_linear_reg(
 
     logging.debug("----FINISHED OBTAINING REGRESSION MODEL----\n")
 
-    return reg_model
+    # Return the regression model, nba player stats, and win shares
+    return reg_model, nba_stats, nba_ws
 
 
 def main() -> None:
