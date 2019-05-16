@@ -16,7 +16,7 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from data import get_nba_df, get_train_test
 
 LOG_FORMAT = "%(name)s - %(levelname)s - \t%(message)s"
-logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
+logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 
 
 def filter_cols(dataframe: pd.DataFrame) -> tuple:
