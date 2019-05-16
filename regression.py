@@ -15,9 +15,6 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from data import get_nba_df, get_train_test
 
-LOG_FORMAT = "%(name)s - %(levelname)s - \t%(message)s"
-logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
-
 
 def filter_cols(dataframe: pd.DataFrame) -> tuple:
     """
@@ -254,7 +251,9 @@ def obtain_linear_reg(
     elif scaling == "stdpca":
         nba_stats = apply_pca(apply_scaling(nba_stats), pca_dimensions, pca_threshold)
     elif scaling == "mmpca":
-        nba_stats = apply_pca(apply_scaling(nba_stats), pca_dimensions, pca_threshold)
+        nba_stats = apply_pca(
+            apply_scaling(nba_stats, scale_type="MinMax"), pca_dimensions, pca_threshold
+        )
 
     # Obtain features and target data
     features, target = get_train_test(nba_stats, nba_ws)
@@ -304,4 +303,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    LOG_FORMAT = "%(name)s - %(levelname)s - \t%(message)s"
+    logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
     main()
