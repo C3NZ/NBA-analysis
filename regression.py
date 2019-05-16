@@ -8,12 +8,11 @@ from collections import namedtuple
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from data import get_nba_df, get_train_test
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-
-from data import get_nba_df, get_train_test
 
 LOG_FORMAT = "%(name)s - %(levelname)s - \t%(message)s"
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
@@ -100,19 +99,19 @@ def apply_pca(
         info_preserved = pca.explained_variance_ratio_.cumsum()[-1] * 100
     else:
         logging.debug(
-            f"\t No dimensions provided, finding a dimension that preserves {threshold * 100}% of the original information"
+            f"  - No dimensions provided, finding a dimension that preserves {threshold * 100}% of the original information"
         )
         info_preserved = 0
         while info_preserved < threshold:
             dimensions += 1
-            logging.debug(f"Attempting to reduce our ")
+            logging.debug(f"  - Reducing our model to {dimensions} dimensions")
             pca = PCA(n_components=dimensions)
             components = pca.fit_transform(dataframe)
-            info_preserved = pca.explained_variance_ratio_.cumsum()[-1] * 100
-        logging.debug(f"")
-    # Get the total amount
-    total_info_preserved = pca.explained_variance_ratio_.cumsum()[-1] * 100
-    logging.debug(f"PCA preserved {total_info_preserved:.2f}%")
+            info_preserved = pca.explained_variance_ratio_.cumsum()[-1]
+
+    logging.debug(
+        f"  - PCA preserved {info_preserved * 100:.2f}% information with {dimensions} reduced dimensions"
+    )
     # Construct our new pca dataframe
     pca_df = pd.DataFrame(
         data=components, columns=["pca-" + str(x + 1) for x in range(dimensions)]
@@ -168,6 +167,7 @@ def create_linear_regression(
     mean_sqrd_err = mean_squared_error(target.testing, prediction)
 
     logging.debug(f"Model predicted r2 score: {model_r2_score}")
+    logging.debug(f"Sklearn predicted r2 score: {sk_r2_score}")
     logging.debug(f"Mean squared error: {mean_sqrd_err}")
     return reg_model
 
@@ -265,7 +265,8 @@ def main() -> None:
     # create_linear_regression(std_pca, std_pca_target)
     # create_linear_regression(mm_pca, mm_pca_target)
     obtain_linear_reg()
-    obtain_linear_reg(model_type=4)
+    # Find number of dimensions that preserves 95% of the information from our original model
+    obtain_linear_reg(model_type=4, pca_dimensions=0, pca_threshold=0.95)
 
 
 if __name__ == "__main__":
