@@ -72,21 +72,45 @@ def filter_cols(dataframe: pd.DataFrame) -> tuple:
     return nba_stats, nba_ws
 
 
-def apply_pca(dataframe: pd.DataFrame, dimensions: int = 2) -> pd.DataFrame:
+def apply_pca(
+    dataframe: pd.DataFrame, dimensions: int = 0, threshold: float = 0.95
+) -> pd.DataFrame:
     """
         Apply pca to our nba dataframe given the dimensionality
         we tend to reduce to
 
         Args:
             df -> The nba dataframe
-            dimensions -> the dimensions we tend to reduce
+            dimensions -> The dimensions we tend to reduce to (if 0, auto detect based on our threshold)
+            threshold -> The threshold for information preserved by our pca model.
+                         Needed for determining the best number of dimensions
 
         Returns:
             PCA scaled dataframe
 
     """
-    pca = PCA(n_components=dimensions)
-    components = pca.fit_transform(dataframe)
+    pca = None
+    components = None
+    info_preserved = 0
+
+    if dimensions:
+        pca = PCA(n_components=dimensions)
+        components = pca.fit_transform(dataframe)
+        # Grab the total information preserved by the dimension we're using
+        info_preserved = pca.explained_variance_ratio_.cumsum()[-1] * 100
+    else:
+        logging.debug(
+            f"\t No dimensions provided, finding a dimension that preserves {threshold * 100}% of the original information"
+        )
+        info_preserved = 0
+        while info_preserved < threshold:
+            dimensions += 1
+            logging.debug(f"Attempting to reduce our ")
+            pca = PCA(n_components=dimensions)
+            components = pca.fit_transform(dataframe)
+            info_preserved = pca.explained_variance_ratio_.cumsum()[-1] * 100
+        logging.debug(f"")
+    # Get the total amount
     total_info_preserved = pca.explained_variance_ratio_.cumsum()[-1] * 100
     logging.debug(f"PCA preserved {total_info_preserved:.2f}%")
     # Construct our new pca dataframe
@@ -160,14 +184,19 @@ MODELTYPES = {
 
 
 def obtain_linear_reg(
-    model_type: int = 0, dimensions: int = 3, from_year: int = 2010, to_year: int = 2018
+    model_type: int = 0,
+    pca_dimensions: int = 3,
+    pca_threshold: float = 0.95,
+    from_year: int = 2010,
+    to_year: int = 2018,
 ) -> LinearRegression:
     """
         Obtain a linear regression model
 
         Args:
             model_type -> the type of model data we'd like to build our regression with
-            dimensions -> the number of dimensions to apply to pca
+            pca_dimensions -> the number of dimensions to apply to pca (if 0, auto-detect the dimensions)
+            pca_threshold -> The threshold for information preserved by our pca models 
             from_year -> the year we want our nba data to be selected from
             to_year -> the year we want our nba data up to
 
@@ -188,11 +217,11 @@ def obtain_linear_reg(
     elif scaling == "mmscaled":
         nba_stats = apply_scaling(nba_stats)
     elif scaling == "pca":
-        nba_stats = apply_pca(nba_stats, dimensions)
+        nba_stats = apply_pca(nba_stats, pca_dimensions, pca_threshold)
     elif scaling == "stdpca":
-        nba_stats = apply_pca(apply_scaling(nba_stats), dimensions)
+        nba_stats = apply_pca(apply_scaling(nba_stats), pca_dimensions, pca_threshold)
     elif scaling == "mmpca":
-        nba_stats = apply_pca(apply_scaling(nba_stats), dimensions)
+        nba_stats = apply_pca(apply_scaling(nba_stats), pca_dimensions, pca_threshold)
 
     # Obtain features and target data
     features, target = get_train_test(nba_stats, nba_ws)
