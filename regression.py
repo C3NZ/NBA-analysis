@@ -205,6 +205,16 @@ MODELTYPES = {
     6: "mmpca",
 }
 
+# Linear regression container
+# regression - The linear regression model
+# stats - The dataframe containing the player stats
+# ws - The dataframe containing the total win shares
+# features - The training and testing features
+# target - The training and testing targets
+LINEARREG = namedtuple(
+    "LinearRegression", ["regression", "stats", "ws", "features", "target"]
+)
+
 
 def obtain_linear_reg(
     model_type: int = 0,
@@ -212,7 +222,7 @@ def obtain_linear_reg(
     pca_threshold: float = 0.95,
     from_year: int = 2010,
     to_year: int = 2018,
-) -> LinearRegression:
+) -> LINEARREG:
     """
         Obtain a linear regression model
 
@@ -257,7 +267,7 @@ def obtain_linear_reg(
     logging.debug("----FINISHED OBTAINING REGRESSION MODEL----\n")
 
     # Return the regression model, nba player stats, and win shares
-    return reg_model, nba_stats, nba_ws
+    return LINEARREG(reg_model, nba_stats, nba_ws, features, target)
 
 
 def main() -> None:
