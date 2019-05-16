@@ -245,7 +245,7 @@ def obtain_linear_reg(
     if scaling == "stdscaled":
         nba_stats = apply_scaling(nba_stats)
     elif scaling == "mmscaled":
-        nba_stats = apply_scaling(nba_stats)
+        nba_stats = apply_scaling(nba_stats, scale_type="MinMax")
     elif scaling == "pca":
         nba_stats = apply_pca(nba_stats, pca_dimensions, pca_threshold)
     elif scaling == "stdpca":
